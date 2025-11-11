@@ -1,5 +1,16 @@
 <template>
   <div class="page">
+    <!-- Decorative floating flowers -->
+    <div class="flowers" aria-hidden="true">
+      <span
+        v-for="f in flowers"
+        :key="f.id"
+        class="flower"
+        :style="{ left: f.left, top: f.top, width: f.size, height: f.size, animationDelay: f.delay, animationDuration: f.duration }"
+      >
+        <span class="flower__inner">🌸</span>
+      </span>
+    </div>
     <main class="shell">
       <section class="hero">
         <div class="tag">Lucky Day Toolkit</div>
@@ -25,7 +36,7 @@
               class="entry-form__input"
               type="text"
               name="entrant"
-              placeholder="Add a person, team, or prize"
+              placeholder="Add a person, place, or prize"
               autocomplete="off"
               maxlength="60"
             />
@@ -43,12 +54,10 @@
               </button>
             </li>
           </TransitionGroup>
-
           <p v-if="entries.length === 0" class="empty-state">
             Start by adding a few entrants. We'll keep them saved locally for you.
           </p>
         </div>
-
         <div class="panel draw">
           <header class="panel__header">
             <h2>Live Draw</h2>
@@ -85,6 +94,13 @@
                 <div v-if="result" key="result" class="result-banner" role="status" aria-live="polite">
                   <div class="result-banner__label">Winner</div>
                   <div class="result-banner__name">{{ result }}</div>
+                  <a
+                    v-if="mapsUrl"
+                    class="result-banner__maps"
+                    :href="mapsUrl"
+                    target="_blank"
+                    rel="noopener"
+                  >Open in Google Maps ↗</a>
                 </div>
               </Transition>
 
@@ -104,6 +120,20 @@
               </div>
             </div>
           </div>
+
+          <Transition name="fade">
+            <div v-if="mapsEmbedUrl" class="maps-embed" aria-label="Map of selected place">
+              <iframe
+                :src="mapsEmbedUrl"
+                width="100%"
+                height="320"
+                style="border:0;"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </Transition>
 
           <div class="actions">
             <button class="draw-button" type="button" :disabled="entries.length === 0 || drawing" @click="startDraw">
@@ -141,6 +171,11 @@ const result = ref<string | null>(null);
 const confettiPieces = ref<
   Array<{ id: string; left: string; delay: string; color: string; size: string }>
 >([]);
+const flowers = ref<
+  Array<{ id: string; left: string; top: string; size: string; delay: string; duration: string }>
+>([]);
+const mapsUrl = computed(() => (result.value ? `https://www.google.com/maps/search/${encodeURIComponent(result.value)}` : ''));
+const mapsEmbedUrl = computed(() => (result.value ? `https://www.google.com/maps?q=${encodeURIComponent(result.value)}&output=embed` : ''));
 // Using ReturnType<typeof setTimeout> for broader compatibility without depending on NodeJS namespace types.
 let highlightTimer: ReturnType<typeof setInterval> | null = null;
 let drawTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -159,6 +194,7 @@ onMounted(() => {
         console.warn('Unable to read stored entries', error);
       }
     }
+    generateFlowers();
   }
 });
 
@@ -261,6 +297,22 @@ function triggerConfetti() {
   confettiTimeout = setTimeout(() => {
     confettiPieces.value = [];
   }, 2200);
+}
+
+function generateFlowers() {
+  const count = window.innerWidth < 800 ? 8 : 14;
+  const arr = Array.from({ length: count }).map((_, i) => {
+    const size = 32 + Math.random() * 42; // px
+    return {
+      id: `flower-${Date.now()}-${i}`,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      size: `${size}px`,
+      delay: `${Math.random() * 6}s`,
+      duration: `${20 + Math.random() * 16}s`
+    };
+  });
+  flowers.value = arr;
 }
 
 function resetDraw() {
@@ -553,6 +605,24 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
+.result-banner__maps {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent-strong);
+  text-decoration: none;
+  background: rgba(108, 76, 255, 0.12);
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.result-banner__maps:hover {
+  background: rgba(108, 76, 255, 0.22);
+  transform: translateY(-2px);
+}
+
 .confetti {
   position: absolute;
   inset: 0;
@@ -565,6 +635,60 @@ onBeforeUnmount(() => {
   top: calc(100% - 30px);
   border-radius: 999px;
   animation: confettiFloat 2.2s ease-in forwards;
+}
+
+.maps-embed {
+  width: 100%;
+  margin-top: 0.25rem;
+  border-radius: calc(var(--border-radius) - 18px);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(84, 70, 255, 0.18);
+  animation: fadeInScale 0.6s ease;
+}
+
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(.94); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Floating flowers */
+.flowers {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.flower {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+  animation-name: floatRotate;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.flower__inner {
+  font-size: 1.4rem;
+  animation: pulseBloom 5.5s ease-in-out infinite;
+  opacity: 0.85;
+}
+
+@keyframes floatRotate {
+  0% { transform: translate3d(0,0,0) rotate(0deg); }
+  25% { transform: translate3d(-10px, 25px, 0) rotate(90deg); }
+  50% { transform: translate3d(6px, 50px, 0) rotate(180deg); }
+  75% { transform: translate3d(-4px, 75px, 0) rotate(270deg); }
+  100% { transform: translate3d(0,100px,0) rotate(360deg); }
+}
+
+@keyframes pulseBloom {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.15); filter: brightness(1.15); }
 }
 
 .actions {
