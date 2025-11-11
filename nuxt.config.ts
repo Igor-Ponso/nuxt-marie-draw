@@ -1,4 +1,6 @@
 export default defineNuxtConfig({
+  // Pin Nitro compatibility date to suppress warning and ensure stable runtime behavior
+  compatibilityDate: '2025-11-10',
   ssr: false,
   devtools: { enabled: true },
   app: {
