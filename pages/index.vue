@@ -5,8 +5,8 @@
         <div class="tag">Lucky Day Toolkit</div>
         <h1 class="hero__title">Marie Draw</h1>
         <p class="hero__subtitle">
-          Build suspense, delight participants, and celebrate the winner with a polished prize draw experience
-          tailored for live events and remote teams alike.
+          Built because Marie is as indecisive as I am — we needed a tiny machine to choose for us
+          when the options start piling up.
         </p>
       </section>
 
@@ -141,12 +141,13 @@ const result = ref<string | null>(null);
 const confettiPieces = ref<
   Array<{ id: string; left: string; delay: string; color: string; size: string }>
 >([]);
-let highlightTimer: NodeJS.Timeout | null = null;
-let drawTimeout: NodeJS.Timeout | null = null;
-let confettiTimeout: NodeJS.Timeout | null = null;
+// Using ReturnType<typeof setTimeout> for broader compatibility without depending on NodeJS namespace types.
+let highlightTimer: ReturnType<typeof setInterval> | null = null;
+let drawTimeout: ReturnType<typeof setTimeout> | null = null;
+let confettiTimeout: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(() => {
-  if (process.client) {
+  if (import.meta.client) {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
@@ -164,7 +165,7 @@ onMounted(() => {
 watch(
   entries,
   (value) => {
-    if (process.client) {
+    if (import.meta.client) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
     }
   },
@@ -267,7 +268,7 @@ function resetDraw() {
   result.value = null;
   highlightIndex.value = null;
   stopHighlighting();
-  if (process.client) {
+  if (import.meta.client) {
     window.localStorage.removeItem(STORAGE_KEY);
   }
 }
