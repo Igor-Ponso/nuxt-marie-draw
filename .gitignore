@@ -1,6 +1,7 @@
 node_modules
 .nuxt
 dist
+# Static site artifact emitted by `npm run generate`
 .output
 .env
 .nitro

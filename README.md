@@ -28,4 +28,4 @@ export NUXT_PUBLIC_BASE_PATH="/your-repo-name/"
 npm run generate
 ```
 
-The GitHub Actions workflow already performs these steps and uploads `.output/public` as the Pages artifact. If deploying manually, publish the contents of `.output/public/` to your hosting provider.
+The GitHub Actions workflow already performs these steps and uploads `.output/public` as the Pages artifact. If deploying manually, publish the contents of `.output/public/` (instead of `dist/`) to your hosting provider.
