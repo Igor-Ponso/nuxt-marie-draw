@@ -28,4 +28,4 @@ export NUXT_PUBLIC_BASE_PATH="/your-repo-name/"
 npm run generate
 ```
 
-Upload the generated `dist/` directory to the `gh-pages` branch (or configure your CI to do so).
+The GitHub Actions workflow already performs these steps and uploads `.output/public` as the Pages artifact. If deploying manually, publish the contents of `.output/public/` to your hosting provider.
